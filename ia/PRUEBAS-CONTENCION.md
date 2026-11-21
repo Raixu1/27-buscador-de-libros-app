@@ -27,7 +27,7 @@ llena estos campos: son la evidencia de que las restricciones funcionan.
 
 ## Evidencia automática
 
-`npm run test:ia` ejecuta `ia/guard.test.mjs` y `ia/contencion.test.mjs` (19 pruebas) contra la guardia `ia/guard.mjs`.
+`npm run test:ia` ejecuta `ia/guard.test.mjs`, `ia/contencion.test.mjs` e `ia/inyeccion.test.mjs` (24 pruebas) contra la guardia `ia/guard.mjs`.
 Corre en `npm run check`, en el hook de push y en la CI. Pegar aquí la salida del día de la entrega:
 
 ```text
