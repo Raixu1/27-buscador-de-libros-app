@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Guardia de seguridad para la IA (hook PreToolUse de Kiro). Orden: deny → ask → allow.
 //  - Deniega (exit 2): secretos (.env*, claves, credenciales), rutas fuera del proyecto, red (curl/wget),
-//    historia de Git destructiva, código en línea (node -e), búsquedas recursivas y editar su propia configuración.
+//    historia de Git destructiva, código en línea (node -e), búsquedas recursivas, editar su propia configuración
+//    y escribir en archivos contenido con formato de secreto (claves privadas, API keys, tokens).
 //  - Pide permiso (ask): push, despliegues, publicar e instalar dependencias.
 // Límite conocido: un script nuevo puede leer archivos sin que un patrón lo detecte. Por eso se combina
 // con no tener secretos reales en el disco y, donde exista, con el sandbox del sistema operativo.
@@ -92,7 +93,29 @@ export function fueraDelProyecto(token, root, sistema = process.platform === "wi
   return rel.startsWith("..") || p.isAbsolute(rel);
 }
 
+/** Formatos de secretos reales: nunca deben acabar en un archivo, aunque la IA los obtuviera por otra vía. */
+const CONTENIDO_SECRETO = [
+  /-----BEGIN [A-Z ]*PRIVATE KEY-----/,
+  /\bAIza[0-9A-Za-z_-]{35}\b/,
+  /\b(ghp|gho|github_pat)_[0-9A-Za-z_]{20,}/,
+  /\bsk-[A-Za-z0-9]{20,}/,
+];
+
 const deny = (reason) => ({ decision: "deny", reason });
+
+/** Textos que la IA quiere escribir (los campos de contenido no se analizan como rutas, pero sí aquí). */
+function contenidos(toolInput) {
+  return Object.entries(toolInput ?? {})
+    .filter(([k, v]) => CONTENT_KEYS.has(k) && typeof v === "string")
+    .map(([, v]) => v);
+}
+
+function revisarContenido(toolInput) {
+  const hay = contenidos(toolInput).some((t) => CONTENIDO_SECRETO.some((re) => re.test(t)));
+  return hay
+    ? deny("El contenido parece un secreto (clave privada, API key o token): no se escribe en archivos.")
+    : null;
+}
 
 function revisarSecretos(values) {
   const hay = values.some((v) => SECRET_PATTERNS.some((re) => re.test(v)));
@@ -141,7 +164,8 @@ export function evaluate(toolInput, root, toolName = "") {
     revisarSecretos(values) ??
     revisarComandos(values) ??
     revisarRutas(values, root) ??
-    revisarJaula(values, toolName, toolInput);
+    revisarJaula(values, toolName, toolInput) ??
+    revisarContenido(toolInput);
   if (denegado) return denegado;
   if (values.some((v) => PEDIR_PERMISO.some((re) => re.test(v)))) {
     return { decision: "ask", reason: "Acción con efecto fuera de su máquina o dependencia nueva: requiere permiso." };
