@@ -15,8 +15,11 @@ test("bloquea leer .env y variantes", () => {
   }
 });
 
-test("permite .env.example", () => {
-  assert.equal(decide({ path: ".env.example" }), "allow");
+// Antes se permitía .env.example. La hoja 2 pide que la regla también bloquee la plantilla,
+// así que ahora se usa env.example (sin punto) y .env.example se deniega (más estricto).
+test("permite env.example y bloquea .env.example", () => {
+  assert.equal(decide({ path: "env.example" }), "allow");
+  assert.equal(decide({ path: ".env.example" }), "deny");
 });
 
 test("bloquea claves, keystores y credenciales", () => {
@@ -51,10 +54,12 @@ test("el contenido de un archivo no se interpreta como ruta", () => {
   assert.equal(decide({ path: "README.md", text: "ver /api/health y ../docs" }), "allow");
 });
 
-test("pide permiso para acciones con efecto externo", () => {
-  for (const command of ["git push origin main", "vercel deploy --prod", "npm publish", "curl https://example.com"]) {
+// Antes curl pedía permiso. La hoja 4 lo pone en «Denegar»: ahora se deniega (más estricto).
+test("pide permiso para acciones con efecto externo; curl se deniega", () => {
+  for (const command of ["git push origin main", "vercel deploy --prod", "npm publish"]) {
     assert.equal(decide({ command }), "ask", command);
   }
+  assert.equal(decide({ command: "curl https://example.com" }), "deny");
 });
 
 test("el hook por línea de comandos bloquea con código 2", () => {

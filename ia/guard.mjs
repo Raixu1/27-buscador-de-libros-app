@@ -1,13 +1,15 @@
 #!/usr/bin/env node
-// Guardia de seguridad para la IA (hook PreToolUse de Kiro).
-//  - Bloquea (exit 2) leer/escribir .env*, claves, keystores y credenciales.
-//  - Bloquea rutas fuera de la carpeta del proyecto.
-//  - Pide permiso (ask) para acciones con efecto fuera de la máquina.
+// Guardia de seguridad para la IA (hook PreToolUse de Kiro). Orden: deny → ask → allow.
+//  - Deniega (exit 2): secretos (.env*, claves, credenciales), rutas fuera del proyecto, red (curl/wget),
+//    historia de Git destructiva, código en línea (node -e), búsquedas recursivas y editar su propia configuración.
+//  - Pide permiso (ask): push, despliegues, publicar e instalar dependencias.
+// Límite conocido: un script nuevo puede leer archivos sin que un patrón lo detecte. Por eso se combina
+// con no tener secretos reales en el disco y, donde exista, con el sandbox del sistema operativo.
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 const SECRET_PATTERNS = [
-  /(^|[\\/\s"'=])\.env(?!\.example)(\.[\w.-]*)?($|[\\/\s"'])/i,
+  /(^|[\\/\s"'=])\.env(\.[\w.-]*)?($|[\\/\s"'])/i,
   /\.(pem|key|p12|pfx|jks|keystore)($|[\s"'])/i,
   /service[-_]?account[\w.-]*\.json/i,
   /firebase-adminsdk[\w.-]*\.json/i,
@@ -16,14 +18,46 @@ const SECRET_PATTERNS = [
   /google-services\.json/i,
 ];
 
-const EXTERNAL_EFFECT = [
+/** Comandos que se deniegan siempre (no hay caso legítimo para que la IA los ejecute). */
+const COMANDOS_DENEGADOS = [
+  [/(^|[\s/\\])(curl|wget)(\.exe)?\b/i, "Red bloqueada (curl/wget)."],
+  [/\b(Invoke-WebRequest|Invoke-RestMethod|iwr|irm)\b/i, "Red bloqueada (Invoke-WebRequest)."],
+  [/\bgit\s+push\b.*(\s--force(-with-lease)?\b|\s-f\b)/i, "git push --force está prohibido."],
+  [/\bgit\s+reset\b.*--hard\b/i, "git reset --hard está prohibido."],
+  [/\bgit\s+clean\b.*-[a-z]*f/i, "git clean -f está prohibido."],
+  [/\brm\s+-[a-z]*r[a-z]*f|\brm\s+-[a-z]*f[a-z]*r/i, "rm -rf está prohibido."],
+  [/(^|[\s;&|])sudo\b/i, "sudo está prohibido."],
+  [/\bvercel\s+env\s+pull\b/i, "vercel env pull bajaría secretos de producción al disco."],
+  [
+    /\b(node|deno|bun)\s+(-e|--eval|-p|--print)\b/i,
+    "Ejecutar código en línea está prohibido: use un archivo revisable.",
+  ],
+  [/\bpython3?\s+-c\b/i, "Ejecutar código en línea está prohibido: use un archivo revisable."],
+];
+
+/** Búsquedas recursivas: leerían archivos ignorados como .env.local. `git grep` solo mira lo versionado. */
+const BUSQUEDA_RECURSIVA = [
+  /(^|[\s;&|])grep\s+(-\w*[rR]\w*|--recursive)\b/,
+  /(^|[\s;&|])rg\s/,
+  /\bfindstr\b.*\s\/s\b/i,
+  /\bSelect-String\b.*-Recurse\b|-Recurse\b.*\|\s*Select-String\b/i,
+];
+
+const PEDIR_PERMISO = [
   /\bgit\s+push\b/i,
   /\bvercel\b/i,
   /\beas\s+(build|submit|update)\b/i,
   /\bnpm\s+publish\b/i,
-  /\b(curl|wget|Invoke-WebRequest|iwr|Invoke-RestMethod|irm)\b/i,
   /\bgh\s+(repo|release|pr)\b/i,
+  /\bnpm\s+(i|install|add)\b(?!\s*$)/i,
+  /\bnpx\s+expo\s+install\b/i,
 ];
+
+/** La propia jaula: la IA puede leerla, no modificarla. */
+const CONFIG_PROTEGIDA = /(^|[\\/])(\.kiro|\.claude)([\\/]|$)|(^|[\\/])ia[\\/](guard|contencion)[\w.-]*\.mjs$/i;
+const HERRAMIENTAS_ESCRITURA = /write|replace|append|delete|edit|relocate|rename|move/i;
+const COMANDO_ESCRITURA =
+  /\b(Set-Content|Add-Content|Out-File|Remove-Item|Move-Item|Copy-Item|New-Item|rm|mv|cp|del|tee|sed\s+-i)\b|>/i;
 
 // Campos que son contenido de archivos (no rutas ni comandos): no se analizan como rutas.
 const CONTENT_KEYS = new Set(["text", "content", "newStr", "oldStr", "prompt"]);
@@ -58,14 +92,25 @@ export function fueraDelProyecto(token, root, sistema = process.platform === "wi
   return rel.startsWith("..") || p.isAbsolute(rel);
 }
 
-/** @returns {{decision:"allow"|"deny"|"ask", reason?:string}} */
-export function evaluate(toolInput, root) {
-  const values = [...strings(toolInput)];
+const deny = (reason) => ({ decision: "deny", reason });
+
+function revisarSecretos(values) {
+  const hay = values.some((v) => SECRET_PATTERNS.some((re) => re.test(v)));
+  return hay ? deny("Acceso a secretos bloqueado (.env*, claves, credenciales, keystores).") : null;
+}
+
+function revisarComandos(values) {
   for (const value of values) {
-    if (SECRET_PATTERNS.some((re) => re.test(value))) {
-      return { decision: "deny", reason: "Acceso a secretos bloqueado (.env, claves, credenciales, keystores)." };
+    const regla = COMANDOS_DENEGADOS.find(([re]) => re.test(value));
+    if (regla) return deny(regla[1]);
+    if (BUSQUEDA_RECURSIVA.some((re) => re.test(value))) {
+      return deny("Búsqueda recursiva bloqueada: leería archivos ignorados como .env.local. Use git grep.");
     }
   }
+  return null;
+}
+
+function revisarRutas(values, root) {
   const rootSource = root
     .split(/[\\/]/)
     .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
@@ -73,32 +118,55 @@ export function evaluate(toolInput, root) {
   const rootRe = new RegExp(rootSource, "gi");
   for (const raw of values) {
     // La ruta del proyecto puede contener espacios: se reemplaza por "." antes de tokenizar.
-    const value = raw.replace(rootRe, ".");
-    for (const token of pathTokens(value)) {
-      if (fueraDelProyecto(token, root)) {
-        return { decision: "deny", reason: `Ruta fuera de la carpeta del proyecto: ${token}` };
-      }
-    }
+    const token = pathTokens(raw.replace(rootRe, ".")).find((t) => fueraDelProyecto(t, root));
+    if (token) return deny(`Ruta fuera de la carpeta del proyecto: ${token}`);
   }
-  for (const value of values) {
-    if (EXTERNAL_EFFECT.some((re) => re.test(value))) {
-      return { decision: "ask", reason: "Acción con efecto fuera de su máquina: requiere permiso." };
-    }
+  return null;
+}
+
+function revisarJaula(values, toolName, toolInput) {
+  const tocaJaula = values.some((v) => CONFIG_PROTEGIDA.test(v) || /(\.kiro|\.claude|ia[\\/]guard)/i.test(v));
+  if (!tocaJaula) return null;
+  const esEscritura =
+    HERRAMIENTAS_ESCRITURA.test(toolName) ||
+    Object.keys(toolInput ?? {}).some((k) => CONTENT_KEYS.has(k)) ||
+    values.some((v) => COMANDO_ESCRITURA.test(v));
+  return esEscritura ? deny("La configuración de la IA (.kiro, .claude, ia/guard) no se puede modificar.") : null;
+}
+
+/** @returns {{decision:"allow"|"deny"|"ask", reason?:string}} */
+export function evaluate(toolInput, root, toolName = "") {
+  const values = [...strings(toolInput)];
+  const denegado =
+    revisarSecretos(values) ??
+    revisarComandos(values) ??
+    revisarRutas(values, root) ??
+    revisarJaula(values, toolName, toolInput);
+  if (denegado) return denegado;
+  if (values.some((v) => PEDIR_PERMISO.some((re) => re.test(v)))) {
+    return { decision: "ask", reason: "Acción con efecto fuera de su máquina o dependencia nueva: requiere permiso." };
   }
   return { decision: "allow" };
 }
 
-async function main() {
+/** Lee el evento del hook desde stdin; tolera JSON vacío o inválido. */
+async function leerEvento() {
   let raw = "";
   for await (const chunk of process.stdin) raw += chunk;
-  let event = {};
   try {
-    event = JSON.parse(raw || "{}");
+    const event = JSON.parse(raw || "{}");
+    return {
+      input: event.tool_input ?? event.toolInput ?? event.input ?? event,
+      toolName: String(event.tool_name ?? event.toolName ?? ""),
+    };
   } catch {
-    event = {};
+    return { input: {}, toolName: "" };
   }
-  const input = event.tool_input ?? event.toolInput ?? event.input ?? event;
-  const { decision, reason } = evaluate(input, process.cwd());
+}
+
+async function main() {
+  const { input, toolName } = await leerEvento();
+  const { decision, reason } = evaluate(input, process.cwd(), toolName);
   if (decision === "deny") {
     process.stderr.write(`BLOQUEADO: ${reason}\n`);
     process.exit(2);
