@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  calidad:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # URL pública de la API (no es un secreto: queda dentro del APK).
+      EXPO_PUBLIC_API_URL: https://27-buscador-de-libros-api.vercel.app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalar dependencias (exactas del lockfile)
+        run: npm ci
+      - name: Check (tipos, lint, formato, pruebas con cobertura ≥ 80 %, guardia de IA)
+        run: npm run check
+      - name: Build (bundle de Android)
+        run: npm run build
+      - name: Auditoría de dependencias
+        run: npm audit --audit-level=high
