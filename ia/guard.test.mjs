@@ -72,3 +72,12 @@ test("el hook por línea de comandos bloquea con código 2", () => {
   assert.equal(ask.status, 0);
   assert.match(ask.stdout, /"permissionDecision":"ask"/);
 });
+
+test("bloquea salir de la carpeta también con reglas de Linux (CI)", async () => {
+  const { fueraDelProyecto } = await import("./guard.mjs");
+  const raiz = "/home/runner/work/repo";
+  for (const t of ["C:\\Windows\\System32\\hosts", "..\\..\\secreto.txt", "../otro", "/etc/passwd", "~/.ssh/config"]) {
+    assert.equal(fueraDelProyecto(t, raiz, "posix"), true, t);
+  }
+  for (const t of ["src/lib/auth.ts", "./src\\lib\\x.ts"]) assert.equal(fueraDelProyecto(t, raiz, "posix"), false, t);
+});

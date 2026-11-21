@@ -44,9 +44,18 @@ function pathTokens(text) {
     .filter((t) => /^(?:[a-zA-Z]:[\\/]|[\\/]|~|\.\.(?:[\\/]|$))/.test(t) || /(?:^|[\\/])\.\.(?:[\\/]|$)/.test(t));
 }
 
-function isInside(root, target) {
-  const rel = path.relative(root, target);
-  return rel === "" || (!rel.startsWith("..") && !path.isAbsolute(rel));
+/**
+ * ¿La ruta queda fuera del proyecto? Funciona igual en Windows y en Linux (CI):
+ * las barras invertidas se tratan como separadores y "C:\..." siempre es absoluta.
+ * `sistema` permite probar el comportamiento de Linux desde Windows.
+ */
+export function fueraDelProyecto(token, root, sistema = process.platform === "win32" ? "win32" : "posix") {
+  if (token.startsWith("~")) return true;
+  const p = path[sistema];
+  const norm = token.replace(/\\/g, "/");
+  if (/^[a-zA-Z]:\//.test(norm) && sistema === "posix") return true;
+  const rel = p.relative(root, p.resolve(root, norm));
+  return rel.startsWith("..") || p.isAbsolute(rel);
 }
 
 /** @returns {{decision:"allow"|"deny"|"ask", reason?:string}} */
@@ -66,8 +75,7 @@ export function evaluate(toolInput, root) {
     // La ruta del proyecto puede contener espacios: se reemplaza por "." antes de tokenizar.
     const value = raw.replace(rootRe, ".");
     for (const token of pathTokens(value)) {
-      const resolved = token.startsWith("~") ? path.resolve("/__home__", token.slice(1)) : path.resolve(root, token);
-      if (token.startsWith("~") || !isInside(root, resolved)) {
+      if (fueraDelProyecto(token, root)) {
         return { decision: "deny", reason: `Ruta fuera de la carpeta del proyecto: ${token}` };
       }
     }
