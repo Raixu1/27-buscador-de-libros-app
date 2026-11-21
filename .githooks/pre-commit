@@ -1,0 +1,3 @@
+#!/bin/sh
+# Calidad automática: también valida el código escrito por la IA.
+npm run check
