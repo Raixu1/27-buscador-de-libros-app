@@ -33,7 +33,7 @@ Expo + React Native + TypeScript + Expo Router · SQLite local (`expo-sqlite`) �
 
 ## No
 
-- No leer, imprimir, copiar ni crear `.env*`, claves, keystores ni credenciales (solo `.env.example`).
+- No leer, imprimir, copiar ni crear `.env*`, claves, keystores ni credenciales (solo `env.example`).
 - No salir de la carpeta de este repositorio.
 - No incluir `firebaseConfig` ni ninguna clave de servicio en la app. Todo `EXPO_PUBLIC_*` es público.
 - No guardar tokens en `AsyncStorage`; solo `expo-secure-store`.

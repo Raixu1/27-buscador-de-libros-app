@@ -52,7 +52,7 @@ ia/         guardia de seguridad de la IA, evidencias y bitácora
 
 ```bash
 npm install
-cp .env.example .env        # EXPO_PUBLIC_API_URL=https://<su-api>.vercel.app  (pública, no secreta)
+cp env.example .env        # EXPO_PUBLIC_API_URL=https://<su-api>.vercel.app  (pública, no secreta)
 npx expo start              # probar en un dispositivo físico (cámara y sensores)
 npm run check               # tipos + lint + formato + pruebas con cobertura ≥ 80 % + guardia de IA
 ```

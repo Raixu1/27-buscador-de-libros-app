@@ -42,10 +42,9 @@ example
 /ios
 /android
 
-# Secretos: nunca en Git (solo .env.example)
+# Secretos: nunca en Git (la plantilla es env.example, sin punto)
 .env
 .env.*
-!.env.example
 *.keystore
 *serviceAccount*.json
 google-services.json
