@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import { Icono } from "@/components/Icono";
 import { colores } from "@/theme";
 
 type Props = { valor: number | null; onCambiar: (v: number | null) => void; deshabilitado?: boolean };
@@ -16,9 +17,9 @@ export function Calificacion({ valor, onCambiar, deshabilitado }: Props) {
             accessibilityRole="radio"
             accessibilityState={{ selected: valor === n, disabled: !!deshabilitado }}
             accessibilityLabel={`${n} ${n === 1 ? "estrella" : "estrellas"}`}
-            style={estilos.estrella}
+            style={({ pressed }) => [estilos.estrella, pressed && { transform: [{ scale: 0.9 }] }]}
           >
-            <Text style={[estilos.texto, { color: activa ? colores.estrella : colores.borde }]}>★</Text>
+            <Icono nombre={activa ? "star" : "star-outline"} tam={34} color={activa ? colores.estrella : "#C9C3B8"} />
           </Pressable>
         );
       })}
@@ -27,7 +28,6 @@ export function Calificacion({ valor, onCambiar, deshabilitado }: Props) {
 }
 
 const estilos = StyleSheet.create({
-  fila: { flexDirection: "row", gap: 4 },
+  fila: { flexDirection: "row", gap: 2 },
   estrella: { width: 48, height: 48, alignItems: "center", justifyContent: "center" },
-  texto: { fontSize: 34 },
 });

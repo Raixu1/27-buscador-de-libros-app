@@ -1,25 +1,33 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
 import { colores } from "@/theme";
-
-const icono = (emoji: string) => () => <Text style={{ fontSize: 20 }}>{emoji}</Text>;
 
 export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarActiveTintColor: colores.primario,
-        headerStyle: { backgroundColor: colores.fondo },
-        headerTintColor: colores.texto,
+        tabBarInactiveTintColor: colores.suave,
+        tabBarLabelStyle: { fontSize: 12, fontWeight: "700" },
+        tabBarStyle: { backgroundColor: colores.tarjeta, borderTopColor: colores.borde, height: 64, paddingTop: 6, paddingBottom: 8 },
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{ title: "Buscar", tabBarIcon: icono("🔎"), tabBarAccessibilityLabel: "Buscar libros" }}
+        options={{
+          title: "Buscar",
+          tabBarAccessibilityLabel: "Buscar libros",
+          tabBarIcon: ({ color, focused, size }) => <Ionicons name={focused ? "search" : "search-outline"} color={String(color)} size={size} />,
+        }}
       />
       <Tabs.Screen
         name="mi-lista"
-        options={{ title: "Mi lista", tabBarIcon: icono("📚"), tabBarAccessibilityLabel: "Mi lista de lectura" }}
+        options={{
+          title: "Mi lista",
+          tabBarAccessibilityLabel: "Mi lista de lectura",
+          tabBarIcon: ({ color, focused, size }) => <Ionicons name={focused ? "library" : "library-outline"} color={String(color)} size={size} />,
+        }}
       />
     </Tabs>
   );

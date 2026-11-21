@@ -1,9 +1,13 @@
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ApiError } from "@/api/client";
 import { buscarLibros } from "@/api/endpoints";
-import { Boton } from "@/components/Boton";
+import { Aviso, useAviso } from "@/components/Aviso";
+import { Cabecera } from "@/components/Cabecera";
+import { Campo } from "@/components/Campo";
+import { Icono } from "@/components/Icono";
+import { InicioBusqueda } from "@/components/InicioBusqueda";
 import { ListaEstados, type EstadoLista } from "@/components/ListaEstados";
 import { TarjetaLibro } from "@/components/TarjetaLibro";
 import { VistaPreviaModal } from "@/components/VistaPreviaModal";
@@ -12,11 +16,10 @@ import { abrirLibro } from "@/navigation";
 import { agregarLibro, repositorio, sincronizarAhora } from "@/services/listaService";
 import { vibrarExito } from "@/services/haptics";
 import { validarBusqueda } from "@/services/validacion";
-import { colores } from "@/theme";
+import { colores, radio, sombra } from "@/theme";
 import type { Estado, LibroResumen } from "@/types";
 
 const SUGERENCIAS = ["Revisa la ortografía", "Prueba con el apellido del autor", "Usa menos palabras"];
-
 export default function Buscador() {
   const router = useRouter();
   const [texto, setTexto] = useState("");
@@ -29,7 +32,7 @@ export default function Buscador() {
   const [refrescando, setRefrescando] = useState(false);
   const [cargandoMas, setCargandoMas] = useState(false);
   const [enLista, setEnLista] = useState<Record<string, Estado>>({});
-  const [aviso, setAviso] = useState<string | null>(null);
+  const [aviso, mostrarAviso] = useAviso();
   const [previa, setPrevia] = useState<LibroResumen | null>(null);
   const solicitud = useRef(0);
 
@@ -86,11 +89,11 @@ export default function Buscador() {
       const repo = await repositorio();
       await agregarLibro(repo, libro, { estado: "quiero", calificacion: null, nota: null });
       vibrarExito();
-      setAviso(`«${libro.titulo}» agregado a Quiero leer.`);
+      mostrarAviso(`«${libro.titulo}» agregado a Quiero leer`);
       await cargarMapaLista();
       sincronizarAhora().catch(() => undefined);
     } catch (e) {
-      setAviso(e instanceof Error ? e.message : "No se pudo agregar.");
+      mostrarAviso(e instanceof Error ? e.message : "No se pudo agregar.", true);
     }
   };
 
@@ -98,35 +101,35 @@ export default function Buscador() {
 
   return (
     <View style={estilos.pantalla}>
-      <View style={estilos.cabecera}>
-        <TextInput
-          style={estilos.input}
-          placeholder="Busca por título o autor"
+      <Cabecera
+        titulo="Descubre"
+        subtitulo="Encuentra tu próximo libro"
+        derecha={
+          <Pressable
+            onPress={() => router.push("/escaner")}
+            accessibilityRole="button"
+            accessibilityLabel="Escanear el código de barras ISBN"
+            style={({ pressed }) => [estilos.botonEscaner, pressed && { opacity: 0.8 }]}
+          >
+            <Icono nombre="barcode-outline" tam={26} color={colores.primario} />
+          </Pressable>
+        }
+      >
+        <Campo
+          icono="search"
+          placeholder="Título o autor"
           value={texto}
           onChangeText={setTexto}
+          onLimpiar={() => setTexto("")}
           autoCorrect={false}
           returnKeyType="search"
           accessibilityLabel="Buscar libros"
         />
-        {errorTexto ? <Text style={estilos.error}>{errorTexto}</Text> : null}
-        <Boton
-          variante="secundario"
-          titulo="📷 Escanear ISBN"
-          accessibilityLabel="Escanear el código de barras ISBN"
-          onPress={() => router.push("/escaner")}
-        />
-        {aviso ? (
-          <Text style={estilos.aviso} accessibilityLiveRegion="polite">
-            {aviso}
-          </Text>
-        ) : null}
-      </View>
+        {errorTexto ? <Text style={estilos.errorTexto}>{errorTexto}</Text> : null}
+      </Cabecera>
 
       {estado === "inicial" ? (
-        <View style={estilos.inicial}>
-          <Text style={estilos.suave}>Escribe al menos 3 caracteres o escanea el ISBN de un libro.</Text>
-          <Text style={estilos.suave}>Desliza una tarjeta a la derecha para agregarla a «Quiero leer».</Text>
-        </View>
+        <InicioBusqueda onIdea={setTexto} />
       ) : (
         <ListaEstados
           estado={estado}
@@ -152,24 +155,13 @@ export default function Buscador() {
         />
       )}
       <VistaPreviaModal libro={previa} onCerrar={() => setPrevia(null)} />
+      <Aviso aviso={aviso} />
     </View>
   );
 }
 
 const estilos = StyleSheet.create({
   pantalla: { flex: 1, backgroundColor: colores.fondo },
-  cabecera: { padding: 16, gap: 8 },
-  input: {
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: colores.borde,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    backgroundColor: colores.tarjeta,
-    fontSize: 16,
-  },
-  error: { color: colores.error, fontSize: 14 },
-  aviso: { color: colores.ok, fontSize: 14, fontWeight: "600" },
-  inicial: { padding: 24, gap: 8 },
-  suave: { fontSize: 15, color: colores.suave },
+  botonEscaner: { width: 52, height: 52, borderRadius: radio.m, backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center", ...sombra },
+  errorTexto: { color: "#FFE4E6", fontSize: 13, fontWeight: "600", marginTop: -4 },
 });

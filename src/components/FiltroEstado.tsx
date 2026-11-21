@@ -1,5 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
-import { colores } from "@/theme";
+import { Icono } from "@/components/Icono";
+import { colorEstado, colores, radio } from "@/theme";
 import { ESTADOS, type Estado } from "@/types";
 
 type Props = { valor: Estado | null; onCambiar: (e: Estado | null) => void; incluirTodos?: boolean };
@@ -14,6 +15,8 @@ export function FiltroEstado({ valor, onCambiar, incluirTodos }: Props) {
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={estilos.fila}>
       {opciones.map((o) => {
         const activo = o.valor === valor;
+        const c = o.valor ? colorEstado[o.valor] : null;
+        const colorActivo = c?.texto ?? colores.primario;
         return (
           <Pressable
             key={o.etiqueta}
@@ -21,9 +24,10 @@ export function FiltroEstado({ valor, onCambiar, incluirTodos }: Props) {
             accessibilityRole="button"
             accessibilityState={{ selected: activo }}
             accessibilityLabel={incluirTodos ? `Filtrar por ${o.etiqueta}` : `Estado ${o.etiqueta}`}
-            style={[estilos.chip, activo && estilos.chipActivo]}
+            style={[estilos.chip, activo && { backgroundColor: colorActivo, borderColor: colorActivo }]}
           >
-            <Text style={[estilos.texto, activo && { color: colores.primarioTexto }]}>{o.etiqueta}</Text>
+            <Icono nombre={c?.icono ?? "albums"} tam={15} color={activo ? "#FFFFFF" : colores.suave} />
+            <Text style={[estilos.texto, activo && { color: "#FFFFFF" }]}>{o.etiqueta}</Text>
           </Pressable>
         );
       })}
@@ -32,15 +36,17 @@ export function FiltroEstado({ valor, onCambiar, incluirTodos }: Props) {
 }
 
 const estilos = StyleSheet.create({
-  fila: { gap: 8, paddingVertical: 4 },
+  fila: { gap: 8, paddingVertical: 2 },
   chip: {
     minHeight: 44,
     paddingHorizontal: 16,
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: colores.primario,
-    justifyContent: "center",
+    borderRadius: radio.pill,
+    borderWidth: 1.5,
+    borderColor: colores.borde,
+    backgroundColor: colores.tarjeta,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
-  chipActivo: { backgroundColor: colores.primario },
-  texto: { color: colores.primario, fontWeight: "600" },
+  texto: { color: colores.texto, fontWeight: "700", fontSize: 14 },
 });

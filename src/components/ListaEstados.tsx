@@ -1,7 +1,8 @@
 import type { ReactElement } from "react";
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View, type ListRenderItem } from "react-native";
 import { Boton } from "@/components/Boton";
-import { colores, espacio } from "@/theme";
+import { Icono, type NombreIcono } from "@/components/Icono";
+import { ANCHO_MAX, colores, espacio, radio } from "@/theme";
 
 export type EstadoLista = "cargando" | "error" | "vacio" | "ok";
 
@@ -13,6 +14,7 @@ type Props<T> = {
   mensajeError?: string;
   onReintentar?: () => void;
   tituloVacio: string;
+  iconoVacio?: NombreIcono;
   sugerencias?: string[];
   onRefrescar?: () => void;
   refrescando?: boolean;
@@ -20,6 +22,18 @@ type Props<T> = {
   cargandoMas?: boolean;
   encabezado?: ReactElement | null;
 };
+
+function Aviso({ icono, color, fondo, titulo, children }: { icono: NombreIcono; color: string; fondo: string; titulo: string; children?: React.ReactNode }) {
+  return (
+    <View style={estilos.centro}>
+      <View style={[estilos.circulo, { backgroundColor: fondo }]}>
+        <Icono nombre={icono} tam={36} color={color} />
+      </View>
+      <Text style={estilos.titulo}>{titulo}</Text>
+      {children}
+    </View>
+  );
+}
 
 /** Lista con estados de carga, vacío (con sugerencias) y error con «Reintentar». */
 export function ListaEstados<T>(p: Props<T>) {
@@ -33,20 +47,22 @@ export function ListaEstados<T>(p: Props<T>) {
   }
   if (p.estado === "error") {
     return (
-      <View style={estilos.centro} accessibilityRole="alert">
-        <Text style={estilos.titulo}>Algo salió mal</Text>
-        <Text style={estilos.suave}>{p.mensajeError ?? "No se pudo completar la operación."}</Text>
-        {p.onReintentar ? <Boton titulo="Reintentar" onPress={p.onReintentar} accessibilityLabel="Reintentar" /> : null}
+      <View style={{ flex: 1 }} accessibilityRole="alert">
+        <Aviso icono="cloud-offline-outline" color={colores.error} fondo={colores.errorSuave} titulo="Algo salió mal">
+          <Text style={estilos.suave}>{p.mensajeError ?? "No se pudo completar la operación."}</Text>
+          {p.onReintentar ? (
+            <Boton titulo="Reintentar" icono="refresh" onPress={p.onReintentar} accessibilityLabel="Reintentar" />
+          ) : null}
+        </Aviso>
       </View>
     );
   }
   if (p.estado === "vacio") {
     return (
-      <View style={estilos.centro}>
-        <Text style={estilos.titulo}>{p.tituloVacio}</Text>
+      <Aviso icono={p.iconoVacio ?? "search-outline"} color={colores.primario} fondo={colores.primarioSuave} titulo={p.tituloVacio}>
         {p.sugerencias?.length ? (
-          <View accessibilityLabel="Sugerencias">
-            <Text style={estilos.suave}>Prueba con:</Text>
+          <View accessibilityLabel="Sugerencias" style={estilos.sugerencias}>
+            <Text style={estilos.sugerenciasTitulo}>Prueba con:</Text>
             {p.sugerencias.map((s) => (
               <Text key={s} style={estilos.suave}>
                 • {s}
@@ -54,7 +70,7 @@ export function ListaEstados<T>(p: Props<T>) {
             ))}
           </View>
         ) : null}
-      </View>
+      </Aviso>
     );
   }
   return (
@@ -63,20 +79,26 @@ export function ListaEstados<T>(p: Props<T>) {
       renderItem={p.renderItem}
       keyExtractor={p.keyExtractor}
       ListHeaderComponent={p.encabezado ?? undefined}
-      contentContainerStyle={{ padding: espacio.l, gap: espacio.m }}
+      contentContainerStyle={estilos.contenido}
       refreshControl={
-        p.onRefrescar ? <RefreshControl refreshing={!!p.refrescando} onRefresh={p.onRefrescar} /> : undefined
+        p.onRefrescar ? (
+          <RefreshControl refreshing={!!p.refrescando} onRefresh={p.onRefrescar} colors={[colores.primario]} tintColor={colores.primario} />
+        ) : undefined
       }
       onEndReached={p.onFinal}
       onEndReachedThreshold={0.5}
-      ListFooterComponent={p.cargandoMas ? <ActivityIndicator color={colores.primario} /> : undefined}
+      ListFooterComponent={p.cargandoMas ? <ActivityIndicator color={colores.primario} style={{ margin: 16 }} /> : undefined}
       keyboardShouldPersistTaps="handled"
     />
   );
 }
 
 const estilos = StyleSheet.create({
-  centro: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, gap: 12 },
-  titulo: { fontSize: 18, fontWeight: "700", color: colores.texto, textAlign: "center" },
-  suave: { fontSize: 15, color: colores.suave, textAlign: "center" },
+  centro: { flex: 1, alignItems: "center", justifyContent: "center", padding: espacio.xl, gap: espacio.m },
+  circulo: { width: 80, height: 80, borderRadius: 40, alignItems: "center", justifyContent: "center", marginBottom: 4 },
+  titulo: { fontSize: 19, fontWeight: "800", color: colores.texto, textAlign: "center" },
+  suave: { fontSize: 15, color: colores.suave, textAlign: "center", lineHeight: 22 },
+  sugerencias: { backgroundColor: colores.tarjeta, borderRadius: radio.m, padding: espacio.l, gap: 4, alignSelf: "stretch", maxWidth: 360 },
+  sugerenciasTitulo: { fontSize: 14, fontWeight: "700", color: colores.texto, textAlign: "center", marginBottom: 2 },
+  contenido: { padding: espacio.l, gap: espacio.m, width: "100%", maxWidth: ANCHO_MAX, alignSelf: "center", paddingBottom: 40 },
 });
