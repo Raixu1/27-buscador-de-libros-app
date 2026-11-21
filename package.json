@@ -51,7 +51,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "jest --coverage",
-    "test:ia": "node --test ia/guard.test.mjs ia/contencion.test.mjs",
+    "test:ia": "node --test ia/guard.test.mjs ia/contencion.test.mjs ia/inyeccion.test.mjs",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run test:ia",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
