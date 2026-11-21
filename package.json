@@ -46,7 +46,9 @@
     "jest-expo": "^58.0.15",
     "prettier": "^3.10.1",
     "react-test-renderer": "^19.3.0",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.1"
   },
   "scripts": {
     "start": "expo start",
@@ -58,7 +60,8 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run test:ia",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "prepare": "husky"
   },
   "private": true,
   "jest": {
@@ -74,6 +77,15 @@
     },
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*)"
+    ]
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,mjs}": [
+      "prettier --write",
+      "eslint --max-warnings 0"
+    ],
+    "*.{json,md,yml,yaml,css}": [
+      "prettier --write"
     ]
   }
 }
