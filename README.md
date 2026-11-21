@@ -1,5 +1,9 @@
 # 27 · Buscador de libros y lista de lectura (app móvil)
 
+- **APK (Android):** https://expo.dev/artifacts/eas/8_fz6ABfVI5DrzczINHDFkTGA-d1X0rDkcp_v0vtnpk.apk
+- **Build en Expo:** https://expo.dev/accounts/rexei/projects/27-buscador-de-libros-app/builds/d413a860-8427-4428-9964-66de86c04ebb
+- **API:** https://27-buscador-de-libros-api.vercel.app
+
 Expo + React Native + TypeScript + Expo Router. Busca libros por título o por ISBN escaneado y arma una lista de lectura con estado, calificación y notas. La lista vive en SQLite y funciona sin conexión; se sincroniza con la API (`27-buscador-de-libros-api`).
 
 > La app **no contiene ninguna credencial**. Solo conoce la URL pública de la API (`EXPO_PUBLIC_API_URL`) y los tokens de sesión del usuario, guardados en `expo-secure-store`.
