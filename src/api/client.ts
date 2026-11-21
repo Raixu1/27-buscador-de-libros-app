@@ -1,3 +1,5 @@
+import type { z } from "zod";
+import { tokensSchema } from "@/api/schemas";
 import { borrarSesion, guardarTokens, leerTokens } from "@/api/tokens";
 
 export class ApiError extends Error {
@@ -55,14 +57,16 @@ function mensajeDeError(data: unknown): string | null {
   return typeof data.error === "string" ? data.error : null;
 }
 
-async function leerRespuesta<T>(res: Response): Promise<T> {
+/** Lee el JSON y lo valida contra el contrato esperado (Zod). */
+async function leerRespuesta<T>(res: Response, schema: z.ZodType<T>): Promise<T> {
   const data: unknown = await res.json().catch(() => null);
   if (!res.ok) {
     const mensaje = mensajeDeError(data) ?? "Error inesperado del servidor.";
     throw new ApiError(res.status, mensaje);
   }
-  // Contrato con nuestra propia API (que valida y normaliza con Zod en el servidor); no silencia un error de tipos.
-  return data as T;
+  const r = schema.safeParse(data);
+  if (!r.success) throw new ApiError(502, "Respuesta inválida del servidor.");
+  return r.data;
 }
 
 let renovando: Promise<string | null> | null = null;
@@ -75,7 +79,7 @@ async function renovarToken(): Promise<string | null> {
       if (!actual) return null;
       const res = await enviar("/api/auth/refresh", "POST", { refreshToken: actual.refreshToken }, null);
       if (!res.ok) return null;
-      const nuevo = await leerRespuesta<{ token: string; refreshToken: string }>(res);
+      const nuevo = await leerRespuesta(res, tokensSchema);
       await guardarTokens({ token: nuevo.token, refreshToken: nuevo.refreshToken });
       return nuevo.token;
     } catch {
@@ -87,12 +91,14 @@ async function renovarToken(): Promise<string | null> {
   return renovando;
 }
 
+/** Petición a la API: token Bearer, un único refresh ante 401 y validación de la respuesta con `schema`. */
 export async function request<T>(
   path: string,
+  schema: z.ZodType<T>,
   opts: { method?: string; body?: unknown; auth?: boolean } = {},
 ): Promise<T> {
   const { method = "GET", body, auth = true } = opts;
-  if (!auth) return leerRespuesta<T>(await enviar(path, method, body, null));
+  if (!auth) return leerRespuesta(await enviar(path, method, body, null), schema);
 
   const tokens = await leerTokens();
   if (!tokens) throw new ApiError(401, "No has iniciado sesión.");
@@ -107,5 +113,5 @@ export async function request<T>(
     }
     res = await enviar(path, method, body, nuevo);
   }
-  return leerRespuesta<T>(res);
+  return leerRespuesta(res, schema);
 }

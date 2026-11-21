@@ -2,8 +2,9 @@ import { fireEvent, render, screen } from "@testing-library/react-native";
 import { Text } from "react-native";
 import { ListaEstados } from "@/components/ListaEstados";
 
+const vacio: { id: string }[] = [];
 const base = {
-  datos: [] as { id: string }[],
+  datos: vacio,
   keyExtractor: (i: { id: string }) => i.id,
   renderItem: ({ item }: { item: { id: string } }) => <Text>{`libro-${item.id}`}</Text>,
   tituloVacio: "Sin resultados",

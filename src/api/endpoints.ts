@@ -1,33 +1,36 @@
+import type { z } from "zod";
 import { request } from "@/api/client";
-import type { LecturaRemota, LibroResumen } from "@/types";
+import {
+  cambiosSchema,
+  lecturaRemotaSchema,
+  libroSchema,
+  okSchema,
+  paginaLibrosSchema,
+  sesionSchema,
+  sinopsisSchema,
+} from "@/api/schemas";
+import type { LecturaRemota } from "@/types";
 
-export type SesionApi = {
-  token: string;
-  refreshToken: string;
-  expiraEnSeg: number;
-  usuario: { id: string; email: string };
-};
+export type SesionApi = z.infer<typeof sesionSchema>;
+export type PaginaLibros = z.infer<typeof paginaLibrosSchema>;
+
+const e = encodeURIComponent;
 
 export const login = (email: string, password: string) =>
-  request<SesionApi>("/api/auth/login", { method: "POST", body: { email, password }, auth: false });
+  request("/api/auth/login", sesionSchema, { method: "POST", body: { email, password }, auth: false });
 
 export const registro = (email: string, password: string) =>
-  request<SesionApi>("/api/auth/registro", { method: "POST", body: { email, password }, auth: false });
-
-export type PaginaLibros = { resultados: LibroResumen[]; total: number; pagina: number; hay_mas: boolean };
+  request("/api/auth/registro", sesionSchema, { method: "POST", body: { email, password }, auth: false });
 
 export const buscarLibros = (q: string, pagina: number) =>
-  request<PaginaLibros>(`/api/libros/buscar?q=${encodeURIComponent(q)}&pagina=${pagina}`);
+  request(`/api/libros/buscar?q=${e(q)}&pagina=${pagina}`, paginaLibrosSchema);
 
-export const libroPorIsbn = (isbn: string) => request<LibroResumen>(`/api/libros/isbn/${encodeURIComponent(isbn)}`);
+export const libroPorIsbn = (isbn: string) => request(`/api/libros/isbn/${e(isbn)}`, libroSchema);
 
-export const sinopsis = (id: string) =>
-  request<{ id: string; descripcion: string | null }>(`/api/libros/detalle/${encodeURIComponent(id)}`);
+export const sinopsis = (id: string) => request(`/api/libros/detalle/${e(id)}`, sinopsisSchema);
 
 export const listarLecturaRemota = (since: string | null) =>
-  request<{ items: LecturaRemota[]; servidor_ahora: string }>(
-    `/api/lectura${since ? `?since=${encodeURIComponent(since)}` : ""}`,
-  );
+  request(`/api/lectura${since ? `?since=${e(since)}` : ""}`, cambiosSchema);
 
 export type CuerpoLectura = Pick<
   LecturaRemota,
@@ -35,7 +38,6 @@ export type CuerpoLectura = Pick<
 >;
 
 export const guardarLecturaRemota = (id: string, cuerpo: CuerpoLectura) =>
-  request<LecturaRemota>(`/api/lectura/${encodeURIComponent(id)}`, { method: "PUT", body: cuerpo });
+  request(`/api/lectura/${e(id)}`, lecturaRemotaSchema, { method: "PUT", body: cuerpo });
 
-export const borrarLecturaRemota = (id: string) =>
-  request<{ ok: true }>(`/api/lectura/${encodeURIComponent(id)}`, { method: "DELETE" });
+export const borrarLecturaRemota = (id: string) => request(`/api/lectura/${e(id)}`, okSchema, { method: "DELETE" });
