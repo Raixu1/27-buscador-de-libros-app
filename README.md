@@ -2,8 +2,8 @@
 
 [![CI](https://github.com/Raixu1/27-buscador-de-libros-app/actions/workflows/ci.yml/badge.svg)](https://github.com/Raixu1/27-buscador-de-libros-app/actions/workflows/ci.yml)
 
-- **APK (Android):** https://expo.dev/artifacts/eas/rQT-bqgMIIIxt_dpZuGJ1LPZaOasoLm6HAO8Fuds5RA.apk
-- **Build en Expo:** https://expo.dev/accounts/rexei/projects/27-buscador-de-libros-app/builds/da3e6ac9-58ec-4e17-87ba-141d220db796
+- **APK (Android):** https://expo.dev/artifacts/eas/VxeF5PhGmJ_vQQco30yBQdBKECl-Ke1cb5SkLEQg5Cw.apk
+- **Build en Expo:** https://expo.dev/accounts/rexei/projects/27-buscador-de-libros-app/builds/69eadec2-960e-4668-9865-08de4338e6d0
 - **API:** https://27-buscador-de-libros-api.vercel.app
 
 Expo + React Native + TypeScript + Expo Router. Busca libros por título o por ISBN escaneado y arma una lista de lectura con estado, calificación y notas. La lista vive en SQLite y funciona sin conexión; se sincroniza con la API (`27-buscador-de-libros-api`).
