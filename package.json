@@ -55,12 +55,11 @@
     "android": "expo start --android",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "test": "jest",
+    "test": "jest --coverage",
     "test:ia": "node --test ia/guard.test.mjs",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run test:ia",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test:coverage": "jest --coverage",
     "prepare": "husky"
   },
   "private": true,
@@ -77,6 +76,27 @@
     },
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*)"
+    ],
+    "collectCoverageFrom": [
+      "src/services/**/*.ts",
+      "src/api/**/*.ts",
+      "src/repositories/**/*.ts",
+      "src/sensors/logic.ts",
+      "src/navigation.ts",
+      "!src/services/haptics.ts"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 80,
+        "branches": 80,
+        "functions": 80,
+        "lines": 80
+      }
+    },
+    "coverageReporters": [
+      "text",
+      "text-summary",
+      "html"
     ]
   },
   "lint-staged": {

@@ -1,7 +1,8 @@
 import type { useRouter } from "expo-router";
 import type { LibroResumen } from "@/types";
 
-type Router = ReturnType<typeof useRouter>;
+/** Solo lo que necesita abrirLibro (facilita probarlo sin el router real). */
+type Router = Pick<ReturnType<typeof useRouter>, "push" | "replace">;
 
 type ParamsLibro = { id: string; titulo?: string; autores?: string; portada?: string; anio?: string };
 

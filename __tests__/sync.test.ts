@@ -53,6 +53,20 @@ describe("lista local", () => {
     await expect(agregarLibro(repo, libro, quiero)).resolves.toBeTruthy();
   });
 
+  it("actualizar y quitar validan que el libro exista; la nota se recorta", async () => {
+    const repo = crearRepoEnMemoria();
+    await expect(actualizarLibro(repo, "nada", quiero)).rejects.toThrow("no está en tu lista");
+    await expect(quitarLibro(repo, "nada")).resolves.toBeUndefined();
+    await agregarLibro(repo, libro, { ...quiero, nota: "   " });
+    const editado = await actualizarLibro(repo, libro.id, { estado: "leido", calificacion: 4, nota: "  bien " });
+    expect(editado).toMatchObject({ estado: "leido", calificacion: 4, nota: "bien", pending: true });
+  });
+
+  it("rechaza calificaciones fuera de 1–5", async () => {
+    const repo = crearRepoEnMemoria();
+    await expect(agregarLibro(repo, libro, { estado: "leido", calificacion: 6, nota: null })).rejects.toThrow();
+  });
+
   it("elige un libro aleatorio o null si la lista está vacía", () => {
     expect(libroAleatorio([], () => 0.5)).toBeNull();
     expect(libroAleatorio(["a", "b", "c"], () => 0.99)).toBe("c");
