@@ -37,13 +37,13 @@
     "eslint": "^9.39.5",
     "eslint-config-expo": "~58.0.4",
     "eslint-import-resolver-typescript": "^3.10.1",
+    "husky": "^9.1.7",
     "jest": "^30.5.2",
     "jest-expo": "^58.0.15",
+    "lint-staged": "^17.6.1",
     "prettier": "^3.10.1",
     "react-test-renderer": "^19.3.0",
-    "typescript": "~6.0.3",
-    "husky": "^9.1.7",
-    "lint-staged": "^17.6.1"
+    "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
@@ -51,7 +51,7 @@
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "test": "jest --coverage",
-    "test:ia": "node --test ia/guard.test.mjs",
+    "test:ia": "node --test ia/guard.test.mjs ia/contencion.test.mjs",
     "check": "npm run typecheck && npm run lint && npm run format:check && npm test && npm run test:ia",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
