@@ -21,8 +21,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Instalar dependencias (exactas del lockfile)
-        run: npm ci
+      # --ignore-scripts: ningún postinstall de dependencias se ejecuta (npm 11 solo avisa). Ver ia/INFORME-INYECCION.md.
+      - name: Instalar dependencias (exactas del lockfile, sin scripts de instalación)
+        run: npm ci --ignore-scripts
       - name: Check (tipos, lint, formato, pruebas con cobertura ≥ 80 %, guardia de IA)
         run: npm run check
       - name: Build (bundle de Android)
