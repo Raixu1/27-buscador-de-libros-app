@@ -1,6 +1,9 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
+import { iconoTab } from "@/components/IconoTab";
 import { colores } from "@/theme";
+
+const iconoBuscar = iconoTab("search", "search-outline");
+const iconoLista = iconoTab("library", "library-outline");
 
 export default function TabsLayout() {
   return (
@@ -21,23 +24,11 @@ export default function TabsLayout() {
     >
       <Tabs.Screen
         name="index"
-        options={{
-          title: "Buscar",
-          tabBarAccessibilityLabel: "Buscar libros",
-          tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons name={focused ? "search" : "search-outline"} color={String(color)} size={size} />
-          ),
-        }}
+        options={{ title: "Buscar", tabBarAccessibilityLabel: "Buscar libros", tabBarIcon: iconoBuscar }}
       />
       <Tabs.Screen
         name="mi-lista"
-        options={{
-          title: "Mi lista",
-          tabBarAccessibilityLabel: "Mi lista de lectura",
-          tabBarIcon: ({ color, focused, size }) => (
-            <Ionicons name={focused ? "library" : "library-outline"} color={String(color)} size={size} />
-          ),
-        }}
+        options={{ title: "Mi lista", tabBarAccessibilityLabel: "Mi lista de lectura", tabBarIcon: iconoLista }}
       />
     </Tabs>
   );
