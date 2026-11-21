@@ -4,7 +4,7 @@ import tseslint from "typescript-eslint";
 
 // Reglas de calidad autom√°ticas (tambi√©n aplican al c√≥digo escrito por la IA).
 export default tseslint.config(
-  { ignores: [".expo/**", "node_modules/**", "dist/**", "ia/**", "*.config.js", "jest.setup.js", "expo-env.d.ts"] },
+  { ignores: [".expo/**", "node_modules/**", "dist/**", "ia/**", "*.config.*", "jest.setup.js", "expo-env.d.ts"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -26,5 +26,7 @@ export default tseslint.config(
       ],
     },
   },
+  // Las pantallas combinan JSX y estado; se permite m·s longitud que en la lÛgica.
+  { files: ["app/**"], rules: { "max-lines-per-function": ["error", { max: 160, skipComments: true }] } },
   { files: ["**/__tests__/**"], rules: { "max-lines-per-function": "off" } },
 );
