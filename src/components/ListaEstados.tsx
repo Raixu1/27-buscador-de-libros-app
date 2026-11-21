@@ -23,7 +23,12 @@ type Props<T> = {
   encabezado?: ReactElement | null;
 };
 
-function Refresco({ onRefrescar, refrescando }: { onRefrescar: () => void; refrescando: boolean }) {
+/**
+ * Devuelve el elemento RefreshControl tal cual (no un componente propio): en Android la lista
+ * lo clona y le mete su contenido como hijos; un envoltorio no los pasa y la lista queda en blanco.
+ */
+export function refresco(onRefrescar: (() => void) | undefined, refrescando: boolean) {
+  if (!onRefrescar) return undefined;
   return (
     <RefreshControl
       refreshing={refrescando}
@@ -48,9 +53,7 @@ export function ListaEstados<T>(p: Props<T>) {
       keyExtractor={p.keyExtractor}
       ListHeaderComponent={p.encabezado ?? undefined}
       contentContainerStyle={estilos.contenido}
-      refreshControl={
-        p.onRefrescar ? <Refresco onRefrescar={p.onRefrescar} refrescando={!!p.refrescando} /> : undefined
-      }
+      refreshControl={refresco(p.onRefrescar, !!p.refrescando)}
       onEndReached={p.onFinal}
       onEndReachedThreshold={0.5}
       ListFooterComponent={pie}

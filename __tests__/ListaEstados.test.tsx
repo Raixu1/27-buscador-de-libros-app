@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
-import { Text } from "react-native";
-import { ListaEstados } from "@/components/ListaEstados";
+import { RefreshControl, Text } from "react-native";
+import { ListaEstados, refresco } from "@/components/ListaEstados";
 
 const vacio: { id: string }[] = [];
 const base = {
@@ -30,6 +30,11 @@ describe("ListaEstados", () => {
     expect(screen.getByText("El servicio falló")).toBeTruthy();
     await fireEvent.press(screen.getByLabelText("Reintentar"));
     expect(onReintentar).toHaveBeenCalledTimes(1);
+  });
+
+  it("usa un RefreshControl directo (en Android, un envoltorio propio deja la lista en blanco)", () => {
+    expect(refresco(() => undefined, false)?.type).toBe(RefreshControl);
+    expect(refresco(undefined, false)).toBeUndefined();
   });
 
   it("muestra los elementos cuando hay datos", async () => {
