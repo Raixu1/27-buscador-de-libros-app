@@ -1,5 +1,7 @@
 # 27 · Buscador de libros y lista de lectura (app móvil)
 
+[![CI](https://github.com/Raixu1/27-buscador-de-libros-app/actions/workflows/ci.yml/badge.svg)](https://github.com/Raixu1/27-buscador-de-libros-app/actions/workflows/ci.yml)
+
 - **APK (Android):** https://expo.dev/artifacts/eas/8_fz6ABfVI5DrzczINHDFkTGA-d1X0rDkcp_v0vtnpk.apk
 - **Build en Expo:** https://expo.dev/accounts/rexei/projects/27-buscador-de-libros-app/builds/d413a860-8427-4428-9964-66de86c04ebb
 - **API:** https://27-buscador-de-libros-api.vercel.app
@@ -52,7 +54,7 @@ ia/         guardia de seguridad de la IA, evidencias y bitácora
 npm install
 cp .env.example .env        # EXPO_PUBLIC_API_URL=https://<su-api>.vercel.app  (pública, no secreta)
 npx expo start              # probar en un dispositivo físico (cámara y sensores)
-npm run check               # lint + tipos + Jest + pruebas de la guardia de IA
+npm run check               # tipos + lint + formato + pruebas con cobertura ≥ 80 % + guardia de IA
 ```
 
 ## APK con EAS Build
@@ -76,4 +78,29 @@ Antes de entregar, busque secretos: `grep -r "firebaseConfig\|AIza\|PRIVATE KEY"
 ## Configuración de IA
 
 Reglas en `AGENTS.md` y `.kiro/steering/`. Hook `PreToolUse` (`ia/guard.mjs`) que bloquea `.env*`/claves, bloquea rutas fuera del repo y pide permiso para acciones externas. Evidencia: `npm run test:ia`. Bitácora: `ia/BITACORA.md`.
-Para activar el pre-commit: `git config core.hooksPath .githooks`.
+Hooks de Git con Husky: al hacer commit, `lint-staged` formatea y revisa lo modificado; al hacer push corre `npm run check`. Se activan solos con `npm install`.
+
+## Dependencias (por qué está cada una)
+
+`package-lock.json` está versionado y la CI instala con `npm ci` (versiones exactas). Se quitaron los paquetes de la plantilla que no se usaban (`@expo/ui`, `expo-device`, `expo-glass-effect`, `expo-symbols`, `expo-web-browser`).
+
+| Paquete                                                                                                   | Para qué                                                                                                                                                        |
+| --------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `expo`, `react`, `react-native`                                                                           | Base de la app (Expo SDK).                                                                                                                                      |
+| `expo-router`, `react-native-screens`, `react-native-safe-area-context`, `expo-linking`, `expo-constants` | Navegación por archivos; los cuatro últimos los exige `expo-router`.                                                                                            |
+| `expo-sqlite`                                                                                             | Lista de lectura local, funciona sin conexión (RF-04).                                                                                                          |
+| `expo-secure-store`                                                                                       | Guardar `token` y `refreshToken` cifrados (nunca en AsyncStorage).                                                                                              |
+| `expo-camera`                                                                                             | Escanear el código de barras ISBN (RF-02).                                                                                                                      |
+| `expo-sensors`                                                                                            | Acelerómetro (sacudir) y giroscopio (inclinación de la portada).                                                                                                |
+| `expo-haptics`                                                                                            | Vibración breve al agregar o guardar.                                                                                                                           |
+| `react-native-gesture-handler`, `react-native-reanimated`, `react-native-worklets`                        | Gestos (deslizar, pulsación larga, pellizco) y animaciones; `worklets` lo exige Reanimated 4.                                                                   |
+| `expo-image`                                                                                              | Portadas con caché y transición.                                                                                                                                |
+| `expo-linear-gradient`, `@expo/vector-icons`, `expo-font`                                                 | Diseño: degradados e iconos; `expo-font` lo exige `@expo/vector-icons`.                                                                                         |
+| `expo-status-bar`, `expo-splash-screen`, `expo-system-ui`                                                 | Barra de estado, pantalla de carga y tema claro en Android.                                                                                                     |
+| `react-dom`, `react-native-web`                                                                           | Vista previa del diseño en el navegador (`expo start --web`).                                                                                                   |
+| `zod`                                                                                                     | Validar cada respuesta de la API antes de usarla o guardarla.                                                                                                   |
+| `typescript`, `@types/*`                                                                                  | Tipado estricto.                                                                                                                                                |
+| `jest`, `jest-expo`, `@testing-library/react-native`, `react-test-renderer`                               | Pruebas y cobertura (umbral 80 %); los pide la guía.                                                                                                            |
+| `eslint` (9), `eslint-config-expo`, `eslint-import-resolver-typescript`                                   | Reglas de calidad; el resolver lo necesita `eslint-config-expo` para entender los alias `@/`. ESLint 9 porque los plugins del config aún no soportan ESLint 10. |
+| `prettier`                                                                                                | Formato uniforme.                                                                                                                                               |
+| `husky`, `lint-staged`                                                                                    | Hooks: formato y lint en el commit, `npm run check` en el push.                                                                                                 |
