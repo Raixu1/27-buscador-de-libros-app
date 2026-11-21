@@ -10,7 +10,13 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colores.primario,
         tabBarInactiveTintColor: colores.suave,
         tabBarLabelStyle: { fontSize: 12, fontWeight: "700" },
-        tabBarStyle: { backgroundColor: colores.tarjeta, borderTopColor: colores.borde, height: 64, paddingTop: 6, paddingBottom: 8 },
+        tabBarStyle: {
+          backgroundColor: colores.tarjeta,
+          borderTopColor: colores.borde,
+          height: 64,
+          paddingTop: 6,
+          paddingBottom: 8,
+        },
       }}
     >
       <Tabs.Screen
@@ -18,7 +24,9 @@ export default function TabsLayout() {
         options={{
           title: "Buscar",
           tabBarAccessibilityLabel: "Buscar libros",
-          tabBarIcon: ({ color, focused, size }) => <Ionicons name={focused ? "search" : "search-outline"} color={String(color)} size={size} />,
+          tabBarIcon: ({ color, focused, size }) => (
+            <Ionicons name={focused ? "search" : "search-outline"} color={String(color)} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -26,7 +34,9 @@ export default function TabsLayout() {
         options={{
           title: "Mi lista",
           tabBarAccessibilityLabel: "Mi lista de lectura",
-          tabBarIcon: ({ color, focused, size }) => <Ionicons name={focused ? "library" : "library-outline"} color={String(color)} size={size} />,
+          tabBarIcon: ({ color, focused, size }) => (
+            <Ionicons name={focused ? "library" : "library-outline"} color={String(color)} size={size} />
+          ),
         }}
       />
     </Tabs>

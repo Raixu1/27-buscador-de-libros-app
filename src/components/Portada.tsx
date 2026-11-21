@@ -20,7 +20,10 @@ export function Portada({ url, titulo, ancho = 64, alto = 96 }: Props) {
       <View style={marco} accessible accessibilityLabel={`Sin portada para ${titulo}`}>
         <LinearGradient
           colors={["#6366F1", "#8B5CF6"]}
-          style={[StyleSheet.absoluteFill, { borderRadius: radioPortada, alignItems: "center", justifyContent: "center", gap: 4 }]}
+          style={[
+            StyleSheet.absoluteFill,
+            { borderRadius: radioPortada, alignItems: "center", justifyContent: "center", gap: 4 },
+          ]}
         >
           <Icono nombre="book" tam={ancho * 0.3} color="rgba(255,255,255,0.9)" />
           {ancho >= 80 ? <Text style={[estilos.iniciales, { fontSize: ancho * 0.16 }]}>{iniciales}</Text> : null}

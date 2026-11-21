@@ -9,7 +9,10 @@ function Navegacion() {
   const { estado } = useSesion();
   if (estado === "cargando") {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colores.fondo }} accessibilityLabel="Cargando">
+      <View
+        style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colores.fondo }}
+        accessibilityLabel="Cargando"
+      >
         <ActivityIndicator size="large" color={colores.primario} />
       </View>
     );
@@ -30,7 +33,11 @@ function Navegacion() {
         <Stack.Screen name="libro/[id]" options={{ title: "", headerTransparent: true, headerTintColor: "#FFFFFF" }} />
         <Stack.Screen
           name="escaner"
-          options={{ title: "Escanear ISBN", headerStyle: { backgroundColor: colores.primarioOscuro }, headerTintColor: "#FFFFFF" }}
+          options={{
+            title: "Escanear ISBN",
+            headerStyle: { backgroundColor: colores.primarioOscuro },
+            headerTintColor: "#FFFFFF",
+          }}
         />
       </Stack.Protected>
       <Stack.Protected guard={!autenticado}>

@@ -49,12 +49,19 @@ async function enviar(path: string, method: string, body: unknown, token: string
   }
 }
 
+/** Extrae `error` del cuerpo { error: string } que define la API, si existe. */
+function mensajeDeError(data: unknown): string | null {
+  if (typeof data !== "object" || data === null || !("error" in data)) return null;
+  return typeof data.error === "string" ? data.error : null;
+}
+
 async function leerRespuesta<T>(res: Response): Promise<T> {
   const data: unknown = await res.json().catch(() => null);
   if (!res.ok) {
-    const mensaje = (data as { error?: string } | null)?.error ?? "Error inesperado del servidor.";
+    const mensaje = mensajeDeError(data) ?? "Error inesperado del servidor.";
     throw new ApiError(res.status, mensaje);
   }
+  // Contrato con nuestra propia API (que valida y normaliza con Zod en el servidor); no silencia un error de tipos.
   return data as T;
 }
 

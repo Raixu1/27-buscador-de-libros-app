@@ -21,7 +21,11 @@ function normalizar(d: DatosLectura): DatosLectura {
 }
 
 /** Agrega un libro a la lista. Rechaza duplicados. Escribe primero en SQLite (pending = 1). */
-export async function agregarLibro(repo: LecturaRepository, libro: LibroResumen, datos: DatosLectura): Promise<Lectura> {
+export async function agregarLibro(
+  repo: LecturaRepository,
+  libro: LibroResumen,
+  datos: DatosLectura,
+): Promise<Lectura> {
   const limpio = normalizar(datos);
   const existente = await repo.obtener(libro.id);
   if (existente && !existente.deleted) throw new ValidationError("Este libro ya está en tu lista.");
@@ -53,7 +57,7 @@ export async function quitarLibro(repo: LecturaRepository, id: string): Promise<
 }
 
 export const libroAleatorio = <T>(items: T[], azar: () => number = Math.random): T | null =>
-  items.length === 0 ? null : items[Math.min(items.length - 1, Math.floor(azar() * items.length))];
+  items[Math.min(items.length - 1, Math.floor(azar() * items.length))] ?? null;
 
 /** Sincroniza con la API. Si no hay conexión devuelve null (la lista local sigue disponible). */
 export async function sincronizarAhora(): Promise<ResultadoSync | null> {

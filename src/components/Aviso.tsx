@@ -15,9 +15,12 @@ export function useAviso(): [DatosAviso, (texto: string, error?: boolean) => voi
     setAviso({ texto, error });
     timer.current = setTimeout(() => setAviso(null), 3000);
   }, []);
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
   return [aviso, mostrar];
 }
 
@@ -44,6 +47,15 @@ export function Aviso({ aviso }: { aviso: DatosAviso }) {
 
 const estilos = StyleSheet.create({
   contenedor: { position: "absolute", left: 16, right: 16, bottom: 16, alignItems: "center" },
-  caja: { flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 16, paddingVertical: 12, borderRadius: radio.m, maxWidth: 520, ...sombraFuerte },
+  caja: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: radio.m,
+    maxWidth: 520,
+    ...sombraFuerte,
+  },
   texto: { color: "#FFFFFF", fontWeight: "600", fontSize: 14, flexShrink: 1 },
 });

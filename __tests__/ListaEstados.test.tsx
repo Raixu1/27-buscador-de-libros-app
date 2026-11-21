@@ -23,7 +23,9 @@ describe("ListaEstados", () => {
 
   it("muestra el error con «Reintentar» que dispara la acción", async () => {
     const onReintentar = jest.fn();
-    await render(<ListaEstados {...base} estado="error" mensajeError="El servicio falló" onReintentar={onReintentar} />);
+    await render(
+      <ListaEstados {...base} estado="error" mensajeError="El servicio falló" onReintentar={onReintentar} />,
+    );
     expect(screen.getByText("El servicio falló")).toBeTruthy();
     await fireEvent.press(screen.getByLabelText("Reintentar"));
     expect(onReintentar).toHaveBeenCalledTimes(1);

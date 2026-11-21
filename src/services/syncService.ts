@@ -43,22 +43,29 @@ function desdeRemoto(r: LecturaRemota): Lectura {
   };
 }
 
+/** Borra en el servidor; si ya no existía (404), se considera hecho. */
+async function borrarRemoto(api: RemotoApi, id: string): Promise<void> {
+  try {
+    await api.borrar(id);
+  } catch (e) {
+    if (!(e instanceof ApiError && e.status === 404)) throw e;
+  }
+}
+
+async function enviarUno(repo: LecturaRepository, api: RemotoApi, item: Lectura): Promise<void> {
+  if (item.deleted) {
+    await borrarRemoto(api, item.id);
+    await repo.marcarSincronizado(item.id, item.updated_at);
+    return;
+  }
+  const remoto = await api.guardar(item.id, aCuerpo(item));
+  await repo.marcarSincronizado(item.id, remoto.updated_at);
+}
+
 /** Envía los cambios pendientes (SQLite → API). */
 export async function enviarPendientes(repo: LecturaRepository, api: RemotoApi): Promise<number> {
   const pendientes = await repo.pendientes();
-  for (const item of pendientes) {
-    if (item.deleted) {
-      try {
-        await api.borrar(item.id);
-      } catch (e) {
-        if (!(e instanceof ApiError && e.status === 404)) throw e;
-      }
-      await repo.marcarSincronizado(item.id, item.updated_at);
-    } else {
-      const remoto = await api.guardar(item.id, aCuerpo(item));
-      await repo.marcarSincronizado(item.id, remoto.updated_at);
-    }
-  }
+  for (const item of pendientes) await enviarUno(repo, api, item);
   return pendientes.length;
 }
 
@@ -74,7 +81,7 @@ export async function traerCambios(repo: LecturaRepository, api: RemotoApi): Pro
       await repo.guardar(desdeRemoto(remoto));
       recibidos++;
     }
-    if (items.length > 0) since = items[items.length - 1].updated_at;
+    since = items.at(-1)?.updated_at ?? since;
     if (items.length < PAGINA) break;
   }
   if (since) await repo.setMeta(META_SINCE, since);

@@ -6,7 +6,11 @@ import { crearDetectorSacudida } from "@/sensors/logic";
 export function useShake(alSacudir: () => void, activo: boolean): { disponible: boolean } {
   const [disponible, setDisponible] = useState(false);
   const callback = useRef(alSacudir);
-  callback.current = alSacudir;
+
+  // La referencia se actualiza después de cada render (no durante el render).
+  useEffect(() => {
+    callback.current = alSacudir;
+  });
 
   useEffect(() => {
     if (!activo) return;

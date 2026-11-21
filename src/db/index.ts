@@ -26,9 +26,10 @@ const MIGRATIONS: string[] = [
 export async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
   const row = await db.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
   const actual = row?.user_version ?? 0;
-  for (let v = actual; v < MIGRATIONS.length; v++) {
+  for (const [v, sql] of MIGRATIONS.entries()) {
+    if (v < actual) continue;
     await db.withExclusiveTransactionAsync(async (tx) => {
-      await tx.execAsync(MIGRATIONS[v]);
+      await tx.execAsync(sql);
       await tx.execAsync(`PRAGMA user_version = ${v + 1}`);
     });
   }

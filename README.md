@@ -10,30 +10,30 @@ Expo + React Native + TypeScript + Expo Router. Busca libros por título o por I
 
 ## Pantallas
 
-| Ruta | Contenido |
-|---|---|
-| `login` | Iniciar sesión o crear cuenta |
-| `(tabs)/index` | Buscador con debounce, paginación y pull to refresh |
+| Ruta              | Contenido                                                                      |
+| ----------------- | ------------------------------------------------------------------------------ |
+| `login`           | Iniciar sesión o crear cuenta                                                  |
+| `(tabs)/index`    | Buscador con debounce, paginación y pull to refresh                            |
 | `(tabs)/mi-lista` | Lista local, filtro por estado, estadística de leídos del año, libro aleatorio |
-| `libro/[id]` | Detalle con portada (zoom e inclinación), estado, calificación y nota |
-| `escaner` | Escanear ISBN con la cámara o escribirlo |
+| `libro/[id]`      | Detalle con portada (zoom e inclinación), estado, calificación y nota          |
+| `escaner`         | Escanear ISBN con la cámara o escribirlo                                       |
 
 ## Gestos y alternativas
 
-| Gesto | Uso | Alternativa accesible |
-|---|---|---|
-| Deslizar tarjeta a la derecha | Agregar a «Quiero leer» | Botón «+ Quiero leer» |
-| Pulsación larga | Vista previa de la sinopsis | Botón «Sinopsis» |
-| Pellizco | Zoom de la portada | Botones «Acercar» / «Alejar» |
-| Pull to refresh | Repetir la búsqueda / sincronizar | Botón «Reintentar» |
+| Gesto                         | Uso                               | Alternativa accesible        |
+| ----------------------------- | --------------------------------- | ---------------------------- |
+| Deslizar tarjeta a la derecha | Agregar a «Quiero leer»           | Botón «+ Quiero leer»        |
+| Pulsación larga               | Vista previa de la sinopsis       | Botón «Sinopsis»             |
+| Pellizco                      | Zoom de la portada                | Botones «Acercar» / «Alejar» |
+| Pull to refresh               | Repetir la búsqueda / sincronizar | Botón «Reintentar»           |
 
 ## Sensores
 
-| Capacidad | Uso | Alternativa |
-|---|---|---|
-| `expo-camera` | Escanear ISBN (EAN-13) | Escribir el ISBN |
+| Capacidad       | Uso                                   | Alternativa             |
+| --------------- | ------------------------------------- | ----------------------- |
+| `expo-camera`   | Escanear ISBN (EAN-13)                | Escribir el ISBN        |
 | `Accelerometer` | Sacudir = libro aleatorio de mi lista | Botón «Libro aleatorio» |
-| `Gyroscope` | Inclinación de la portada | Portada estática |
+| `Gyroscope`     | Inclinación de la portada             | Portada estática        |
 
 Se llama `isAvailableAsync()` antes de usar cada sensor, los permisos se piden solo al activar la función y las suscripciones se cancelan al salir. La lógica pura está en `src/sensors/logic.ts`.
 

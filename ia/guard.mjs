@@ -92,11 +92,12 @@ async function main() {
   const input = event.tool_input ?? event.toolInput ?? event.input ?? event;
   const { decision, reason } = evaluate(input, process.cwd());
   if (decision === "deny") {
-    console.error(`BLOQUEADO: ${reason}`);
+    process.stderr.write(`BLOQUEADO: ${reason}\n`);
     process.exit(2);
   }
   if (decision === "ask") {
-    console.log(JSON.stringify({ hookSpecificOutput: { permissionDecision: "ask", permissionDecisionReason: reason } }));
+    const salida = { hookSpecificOutput: { permissionDecision: "ask", permissionDecisionReason: reason } };
+    process.stdout.write(`${JSON.stringify(salida)}\n`);
   }
 }
 

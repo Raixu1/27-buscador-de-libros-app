@@ -10,7 +10,12 @@ type Props = { titulo: string; subtitulo?: string; derecha?: ReactNode; children
 export function Cabecera({ titulo, subtitulo, derecha, children }: Props) {
   const { top } = useSafeAreaInsets();
   return (
-    <LinearGradient colors={degradado} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[estilos.fondo, { paddingTop: top + espacio.l }]}>
+    <LinearGradient
+      colors={degradado}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[estilos.fondo, { paddingTop: top + espacio.l }]}
+    >
       {/* Círculos decorativos */}
       <View style={[estilos.circulo, { width: 180, height: 180, top: -60, right: -40 }]} pointerEvents="none" />
       <View style={[estilos.circulo, { width: 90, height: 90, bottom: -20, left: -30 }]} pointerEvents="none" />
@@ -31,7 +36,13 @@ export function Cabecera({ titulo, subtitulo, derecha, children }: Props) {
 }
 
 const estilos = StyleSheet.create({
-  fondo: { paddingHorizontal: espacio.l, paddingBottom: espacio.l, borderBottomLeftRadius: 28, borderBottomRightRadius: 28, overflow: "hidden" },
+  fondo: {
+    paddingHorizontal: espacio.l,
+    paddingBottom: espacio.l,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    overflow: "hidden",
+  },
   circulo: { position: "absolute", borderRadius: 999, backgroundColor: "rgba(255,255,255,0.08)" },
   contenido: { width: "100%", maxWidth: ANCHO_MAX, alignSelf: "center", gap: espacio.m },
   fila: { flexDirection: "row", alignItems: "center", gap: espacio.m },

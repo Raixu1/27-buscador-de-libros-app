@@ -42,23 +42,29 @@ export function aLectura(f: Fila): Lectura {
   };
 }
 
-export function crearLecturaRepository(db: Db) {
+/** Condiciones WHERE parametrizadas para listar. */
+function filtrosListado(opts: { estado?: Estado | null; texto?: string }) {
+  const where = ["deleted = 0"];
+  const params: (string | number)[] = [];
+  if (opts.estado) {
+    where.push("estado = ?");
+    params.push(opts.estado);
+  }
+  const texto = opts.texto?.trim();
+  if (texto) {
+    where.push("(titulo LIKE ? OR autores LIKE ?)");
+    params.push(`%${texto}%`, `%${texto}%`);
+  }
+  return { where: where.join(" AND "), params };
+}
+
+function consultas(db: Db) {
   return {
     /** Lista no borrada. Filtra por estado y por texto (título o autores). */
     async listar(opts: { estado?: Estado | null; texto?: string } = {}): Promise<Lectura[]> {
-      const where = ["deleted = 0"];
-      const params: (string | number)[] = [];
-      if (opts.estado) {
-        where.push("estado = ?");
-        params.push(opts.estado);
-      }
-      const texto = opts.texto?.trim();
-      if (texto) {
-        where.push("(titulo LIKE ? OR autores LIKE ?)");
-        params.push(`%${texto}%`, `%${texto}%`);
-      }
+      const { where, params } = filtrosListado(opts);
       const filas = await db.getAllAsync<Fila>(
-        `SELECT * FROM lectura WHERE ${where.join(" AND ")} ORDER BY updated_at DESC, titulo ASC`,
+        `SELECT * FROM lectura WHERE ${where} ORDER BY updated_at DESC, titulo ASC`,
         params,
       );
       return filas.map(aLectura);
@@ -69,7 +75,11 @@ export function crearLecturaRepository(db: Db) {
       const f = await db.getFirstAsync<Fila>("SELECT * FROM lectura WHERE id = ?", [id]);
       return f ? aLectura(f) : null;
     },
+  };
+}
 
+function escrituras(db: Db) {
+  return {
     /** Inserta o reemplaza una fila local, dejando constancia de si está pendiente de enviar. */
     async guardar(item: Lectura): Promise<void> {
       await db.runAsync(
@@ -101,7 +111,11 @@ export function crearLecturaRepository(db: Db) {
     async marcarSincronizado(id: string, updatedAt: string): Promise<void> {
       await db.runAsync("UPDATE lectura SET pending = 0, updated_at = ? WHERE id = ?", [updatedAt, id]);
     },
+  };
+}
 
+function estadisticasYMeta(db: Db) {
+  return {
     /** RF-06: libros leídos este año (según la fecha de la última modificación). */
     async contarLeidosDelAnio(anio: number): Promise<number> {
       const r = await db.getFirstAsync<{ n: number }>(
@@ -124,6 +138,10 @@ export function crearLecturaRepository(db: Db) {
       await db.execAsync("DELETE FROM lectura; DELETE FROM meta;");
     },
   };
+}
+
+export function crearLecturaRepository(db: Db) {
+  return { ...consultas(db), ...escrituras(db), ...estadisticasYMeta(db) };
 }
 
 export type LecturaRepository = ReturnType<typeof crearLecturaRepository>;

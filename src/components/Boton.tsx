@@ -22,7 +22,16 @@ const COLOR_TEXTO: Record<Variante, string> = {
   fantasma: colores.primario,
 };
 
-export function Boton({ titulo, onPress, accessibilityLabel, variante = "primario", icono, deshabilitado, compacto, style }: Props) {
+export function Boton({
+  titulo,
+  onPress,
+  accessibilityLabel,
+  variante = "primario",
+  icono,
+  deshabilitado,
+  compacto,
+  style,
+}: Props) {
   const color = COLOR_TEXTO[variante];
   return (
     <Pressable

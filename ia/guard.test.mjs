@@ -20,7 +20,15 @@ test("permite .env.example", () => {
 });
 
 test("bloquea claves, keystores y credenciales", () => {
-  for (const p of ["clave.pem", "release.keystore", "upload.jks", "serviceAccount.json", "my-firebase-adminsdk-x.json", "id_rsa", "google-services.json"]) {
+  for (const p of [
+    "clave.pem",
+    "release.keystore",
+    "upload.jks",
+    "serviceAccount.json",
+    "my-firebase-adminsdk-x.json",
+    "id_rsa",
+    "google-services.json",
+  ]) {
     assert.equal(decide({ path: p }), "deny", p);
   }
 });
@@ -51,7 +59,11 @@ test("pide permiso para acciones con efecto externo", () => {
 
 test("el hook por línea de comandos bloquea con código 2", () => {
   const run = (event) =>
-    spawnSync(process.execPath, [path.join(root, "ia", "guard.mjs")], { input: JSON.stringify(event), cwd: root, encoding: "utf8" });
+    spawnSync(process.execPath, [path.join(root, "ia", "guard.mjs")], {
+      input: JSON.stringify(event),
+      cwd: root,
+      encoding: "utf8",
+    });
   const denied = run({ tool_name: "read_file", tool_input: { path: ".env" } });
   assert.equal(denied.status, 2);
   assert.match(denied.stderr, /BLOQUEADO/);

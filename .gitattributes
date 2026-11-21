@@ -1,0 +1,5 @@
+# Finales de línea LF en todo el repo (Prettier y .editorconfig usan LF).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary

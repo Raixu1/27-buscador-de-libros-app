@@ -1,32 +1,42 @@
-import js from "@eslint/js";
-import reactHooks from "eslint-plugin-react-hooks";
-import tseslint from "typescript-eslint";
-
 // Reglas de calidad automáticas (también aplican al código escrito por la IA).
-export default tseslint.config(
-  { ignores: [".expo/**", "node_modules/**", "dist/**", "ia/**", "*.config.*", "jest.setup.js", "expo-env.d.ts"] },
-  js.configs.recommended,
-  ...tseslint.configs.recommended,
+import { defineConfig, globalIgnores } from "eslint/config";
+import expoConfig from "eslint-config-expo/flat.js";
+
+export default defineConfig([
+  expoConfig,
+  globalIgnores([".expo/**", "dist/**", "android/**", "ios/**", "coverage/**", "expo-env.d.ts"]),
   {
-    plugins: { "react-hooks": reactHooks },
     rules: {
-      "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "error",
-      "@typescript-eslint/no-explicit-any": "error",
-      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
-      "no-console": ["error", { allow: ["error"] }],
-      eqeqeq: "error",
-      complexity: ["error", 12],
-      "max-lines-per-function": ["error", { max: 90, skipComments: true }],
-      "max-lines": ["error", { max: 300, skipComments: true }],
+      complexity: ["error", 10],
+      "max-lines-per-function": ["error", { max: 50, skipBlankLines: true, skipComments: true }],
+      "max-lines": ["error", { max: 300, skipBlankLines: true, skipComments: true }],
+      "max-depth": ["error", 3],
+      "no-console": "error",
+      eqeqeq: ["error", "always"],
       // Los tokens solo se guardan en expo-secure-store.
       "no-restricted-imports": [
         "error",
-        { paths: [{ name: "@react-native-async-storage/async-storage", message: "Use expo-secure-store para tokens." }] },
+        {
+          paths: [{ name: "@react-native-async-storage/async-storage", message: "Use expo-secure-store para tokens." }],
+        },
       ],
     },
   },
-  // Las pantallas combinan JSX y estado; se permite m�s longitud que en la l�gica.
-  { files: ["app/**"], rules: { "max-lines-per-function": ["error", { max: 160, skipComments: true }] } },
-  { files: ["**/__tests__/**"], rules: { "max-lines-per-function": "off" } },
-);
+  {
+    files: ["**/*.{ts,tsx}"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/ban-ts-comment": ["error", { "ts-ignore": true, "ts-nocheck": true }],
+      "@typescript-eslint/consistent-type-assertions": [
+        "error",
+        { assertionStyle: "as", objectLiteralTypeAssertions: "never" },
+      ],
+      "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    },
+  },
+  {
+    // Guardia de seguridad de la IA y archivos de configuración: scripts de Node.
+    files: ["ia/**/*.mjs", "*.config.{js,mjs}", "jest.setup.js"],
+    languageOptions: { globals: { process: "readonly" } },
+  },
+]);

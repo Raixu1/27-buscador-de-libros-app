@@ -19,8 +19,7 @@ export type PaginaLibros = { resultados: LibroResumen[]; total: number; pagina: 
 export const buscarLibros = (q: string, pagina: number) =>
   request<PaginaLibros>(`/api/libros/buscar?q=${encodeURIComponent(q)}&pagina=${pagina}`);
 
-export const libroPorIsbn = (isbn: string) =>
-  request<LibroResumen>(`/api/libros/isbn/${encodeURIComponent(isbn)}`);
+export const libroPorIsbn = (isbn: string) => request<LibroResumen>(`/api/libros/isbn/${encodeURIComponent(isbn)}`);
 
 export const sinopsis = (id: string) =>
   request<{ id: string; descripcion: string | null }>(`/api/libros/detalle/${encodeURIComponent(id)}`);

@@ -22,7 +22,10 @@ export const colores = {
 /** Degradado de las cabeceras. */
 export const degradado = ["#312E81", "#4F46E5", "#7C3AED"] as const;
 
-export const colorEstado: Record<Estado, { texto: string; fondo: string; icono: "bookmark" | "book" | "checkmark-circle" }> = {
+export const colorEstado: Record<
+  Estado,
+  { texto: string; fondo: string; icono: "bookmark" | "book" | "checkmark-circle" }
+> = {
   quiero: { texto: "#1D4ED8", fondo: "#DBEAFE", icono: "bookmark" },
   leyendo: { texto: "#B45309", fondo: "#FEF3C7", icono: "book" },
   leido: { texto: "#047857", fondo: "#D1FAE5", icono: "checkmark-circle" },

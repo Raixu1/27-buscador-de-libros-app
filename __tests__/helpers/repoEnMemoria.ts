@@ -9,7 +9,8 @@ export function crearRepoEnMemoria(): LecturaRepository & { filas: Map<string, L
     filas,
     async listar(opts = {}) {
       return [...filas.values()].filter(
-        (f) => !f.deleted && (!opts.estado || f.estado === opts.estado) && (!opts.texto || f.titulo.includes(opts.texto)),
+        (f) =>
+          !f.deleted && (!opts.estado || f.estado === opts.estado) && (!opts.texto || f.titulo.includes(opts.texto)),
       );
     },
     async obtener(id) {
